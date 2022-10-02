@@ -598,6 +598,8 @@ class DocumentType(str):
     Automation_ChangeTemplate = "Automation.ChangeTemplate"
     ProblemAnalysis = "ProblemAnalysis"
     ProblemAnalysisTemplate = "ProblemAnalysisTemplate"
+    CloudFormation = "CloudFormation"
+    ConformancePackTemplate = "ConformancePackTemplate"
 
 
 class ExecutionMode(str):
@@ -933,6 +935,7 @@ class ResourceTypeForTagging(str):
     OpsItem = "OpsItem"
     OpsMetadata = "OpsMetadata"
     Automation = "Automation"
+    Association = "Association"
 
 
 class ReviewStatus(str):
@@ -1428,6 +1431,12 @@ class InvalidRole(ServiceException):
 
 class InvalidSchedule(ServiceException):
     code: str = "InvalidSchedule"
+    sender_fault: bool = False
+    status_code: int = 400
+
+
+class InvalidTag(ServiceException):
+    code: str = "InvalidTag"
     sender_fault: bool = False
     status_code: int = 400
 
@@ -2500,6 +2509,7 @@ class CreateAssociationRequest(ServiceRequest):
     TargetLocations: Optional[TargetLocations]
     ScheduleOffset: Optional[ScheduleOffset]
     TargetMaps: Optional[TargetMaps]
+    Tags: Optional[TagList]
 
 
 class CreateAssociationResult(TypedDict, total=False):
@@ -5403,6 +5413,7 @@ class SsmApi:
         target_locations: TargetLocations = None,
         schedule_offset: ScheduleOffset = None,
         target_maps: TargetMaps = None,
+        tags: TagList = None,
     ) -> CreateAssociationResult:
         raise NotImplementedError
 

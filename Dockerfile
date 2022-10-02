@@ -1,7 +1,7 @@
 ARG IMAGE_TYPE=full
 
 # java-builder: Stage to build a custom JRE (with jlink)
-FROM python:3.10.6-slim-buster@sha256:f17c94905c9cd56dce9ef6ce63229045a75f395f7b5b68eb69ef617079c51848 as java-builder
+FROM python:3.10.7-slim-buster@sha256:7bb70ac0176d6a8bdabba60cd8ededd6494605f225365510f7ee5691a4004463 as java-builder
 ARG TARGETARCH
 
 # install OpenJDK 11
@@ -21,6 +21,8 @@ jdk.crypto.cryptoki,\
 jdk.zipfs,\
 # OpenSearch needs some jdk modules
 jdk.httpserver,jdk.management,\
+# MQ Broker requires management agent
+jdk.management.agent,\
 # Elasticsearch 7+ crashes without Thai Segmentation support
 jdk.localedata --include-locales en,th \
     --compress 2 --strip-debug --no-header-files --no-man-pages --output /usr/lib/jvm/java-11 && \
@@ -34,7 +36,7 @@ jdk.localedata --include-locales en,th \
 
 
 # base: Stage which installs necessary runtime dependencies (OS packages, java, maven,...)
-FROM python:3.10.6-slim-buster@sha256:f17c94905c9cd56dce9ef6ce63229045a75f395f7b5b68eb69ef617079c51848 as base
+FROM python:3.10.7-slim-buster@sha256:7bb70ac0176d6a8bdabba60cd8ededd6494605f225365510f7ee5691a4004463 as base
 ARG TARGETARCH
 
 # Install runtime OS package dependencies
@@ -84,7 +86,7 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
-ADD https://raw.githubusercontent.com/carlossg/docker-maven/master/openjdk-11/settings-docker.xml /usr/share/maven/ref/
+ADD https://raw.githubusercontent.com/carlossg/docker-maven/9d82eaf48ee8b14ac15a36c431ba28b735e99c92/openjdk-11/settings-docker.xml /usr/share/maven/ref/
 
 # set workdir
 RUN mkdir -p /opt/code/localstack
@@ -180,13 +182,13 @@ FROM base as base-full
 # https://github.com/pires/docker-elasticsearch/issues/56
 ENV ES_TMPDIR /tmp
 
-ENV ES_BASE_DIR=/usr/lib/localstack/elasticsearch
+ENV ES_BASE_DIR=/usr/lib/localstack/elasticsearch/Elasticsearch_7.10
 ENV ES_JAVA_HOME /usr/lib/jvm/java-11
 RUN TARGETARCH_SYNONYM=$([[ "$TARGETARCH" == "amd64" ]] && echo "x86_64" || echo "aarch64"); \
     curl -L -o /tmp/localstack.es.tar.gz \
         https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.10.0-linux-${TARGETARCH_SYNONYM}.tar.gz && \
-    (cd /usr/lib/localstack && tar -xf /tmp/localstack.es.tar.gz && \
-        mv elasticsearch* elasticsearch && rm /tmp/localstack.es.tar.gz) && \
+    (cd /tmp && tar -xf localstack.es.tar.gz && \
+        mkdir -p $ES_BASE_DIR && mv elasticsearch*/* $ES_BASE_DIR && rm /tmp/localstack.es.tar.gz) && \
     (cd $ES_BASE_DIR && \
         bin/elasticsearch-plugin install analysis-icu && \
         bin/elasticsearch-plugin install ingest-attachment --batch && \
