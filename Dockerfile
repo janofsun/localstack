@@ -49,7 +49,7 @@ RUN apt-get update && \
         apt-get update && \
         apt-get install -y --no-install-recommends \
             # Runtime packages (groff-base is necessary for AWS CLI help)
-            git make openssl tar pixz zip unzip groff-base iputils-ping nss-passwords ffmpeg\
+            git make openssl tar pixz zip unzip groff-base iputils-ping nss-passwords\
             # Postgres
             postgresql postgresql-client postgresql-plpython3 \
             # NodeJS
@@ -205,6 +205,8 @@ RUN TARGETARCH_SYNONYM=$([[ "$TARGETARCH" == "amd64" ]] && echo "x86_64" || echo
     ( rm -rf $ES_BASE_DIR/modules/x-pack-ml/platform && \
         rm -rf $ES_BASE_DIR/modules/ingest-geoip)
 
+# install ffmpeg package to support multiple audio formats transcription
+RUN apt-get install -y ffmpeg
 
 
 # light: Stage which produces a final working localstack image (which does not contain some additional infrastructure like eleasticsearch - see "full" stage)
