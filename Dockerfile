@@ -205,10 +205,6 @@ RUN TARGETARCH_SYNONYM=$([[ "$TARGETARCH" == "amd64" ]] && echo "x86_64" || echo
     ( rm -rf $ES_BASE_DIR/modules/x-pack-ml/platform && \
         rm -rf $ES_BASE_DIR/modules/ingest-geoip)
 
-# TODO: Refactor it into a transcribe dependency installer
-# install ffmpeg package to support multiple audio formats transcription
-RUN apt-get update && apt-get install -y ffmpeg
-
 
 # light: Stage which produces a final working localstack image (which does not contain some additional infrastructure like eleasticsearch - see "full" stage)
 FROM base-${IMAGE_TYPE}
